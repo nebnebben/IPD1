@@ -1,6 +1,7 @@
 from Automata import *
 from Network_Generation import *
 from tournament_basic import *
+from copy import deepcopy
 
 # Gets the average number of co-operative states from a population
 def cooperate_percent(pop):
@@ -22,14 +23,17 @@ def cooperate_percent(pop):
     return coop_avg
 
 # roulette wheel selection
+# PASS BY FUCKING REFERENCE
+# CHANGE THIS SO IT DEEPCoPIES OBJECTS
 def roulette_select(size, population):
     out = []
-    max = sum([x[0] for x in population])
-    selection_probs = [x[0] / max for x in population]
+    total = sum([x[0] for x in population])
+    selection_probs = [x[0] / total for x in population] # Normalises probability
     for i in range(size):
         choice = population[np.random.choice(len(population), p=selection_probs)][1]
-        out.append(choice)
+        out.append(deepcopy(choice)) # Deepcopy!
     return out
+
 
 
 """
@@ -62,14 +66,6 @@ def repeated_tournament_evolutionary(no_rounds=100, pop_size=50, percentage_kept
 
     for i in range(no_rounds):
         # clear_output(wait=True)
-
-        # for x in pop:
-        #     #             if get_max(x.nodes) > len(x.nodes):
-        #     #                 print('hey')
-        #     print('')
-        #     view_nodes(x.nodes)
-        #     print('')
-
         # Gets co-operation percentage
         c_percent.append(cooperate_percent(pop))
 

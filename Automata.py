@@ -26,7 +26,7 @@ class Node:
 
 """
 The main class, this represents an automaton. It consists of the nodes and how they are connected.
-It also updates the state of the automaton if its playing against another automaton
+It also updates the state of the automaton if it's playing against another automaton
 
 """
 
@@ -79,7 +79,6 @@ class Automaton:
         # Actual code
         self.current_node = self.nodes[new_node]
         self.current_node_index = new_node
-
 
         return points
 

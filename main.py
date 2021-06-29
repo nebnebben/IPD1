@@ -6,7 +6,7 @@ import matplotlib.cm as cm
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    c_percent, scores = repeated_tournament_evolutionary(no_rounds=400, pop_size=100, percentage_kept=0.95)
+    c_percent, scores = repeated_tournament_evolutionary(no_rounds=100, pop_size=200, percentage_kept=0.99)
     # plt.plot(scores)
     # plt.show()
     # print('complete')

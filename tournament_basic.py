@@ -7,6 +7,8 @@ and returns their final scores. Optional arguments are
 the number of rounds, whether the score is reset before starting
 and whether there is a printout of the results.
 """
+
+
 def compete(fsm1, fsm2, no_rounds=100, reset=True, printout=True):
     # Reset points and states if reset
 
@@ -54,7 +56,7 @@ def hash_score(scores, fsa1, fsa2, no_rounds=100):
     h2 = hash(fsa2)
     if (h1, h2) in scores:
         fsm1_score, fsm2_score = scores[(h1, h2)]
-        fsa1.current_points += fsm1_score
+        fsa1.current_points += fsm1_score # Move outside function
         fsa2.current_points += fsm2_score
     else:
         fsm1_score, fsm2_score = compete(fsa1, fsa2, no_rounds=no_rounds, reset=False, printout=False)
@@ -62,7 +64,11 @@ def hash_score(scores, fsa1, fsa2, no_rounds=100):
         scores[(h2, h1)] = fsm2_score, fsm1_score
         fsa1.current_points += fsm1_score
         fsa2.current_points += fsm2_score
+
+    if fsm1_score > 5 or fsm2_score > 5:
+        print('what?')
     return fsm1_score, fsm2_score
+
 
 """
 This runs a tournmanet between multiple automata acting as contestants
@@ -82,6 +88,7 @@ def tournament(no_contestants=200, competitors=None, saved=False):
         competitors = [Automaton(graphs[i]) for i in range(no_contestants)]
 
     # If hashed scores have not been saved, start saving them
+    # Should be not saved? Ambiguous
     if saved == True:
         saved = {}
 
@@ -90,14 +97,12 @@ def tournament(no_contestants=200, competitors=None, saved=False):
     # Play every bot off against each other
     for i in range(no_contestants):
         for j in range(i + 1, no_contestants):
-            # if saved == False:
-            #     if i != j:
-            #         compete(competitors[i], competitors[j], reset=False, printout=False)
-            # else:
             if i != j:
                 fsm1_score, fsm2_score = hash_score(saved, competitors[i], competitors[j])
                 saved_scores[i] += fsm1_score
                 saved_scores[j] += fsm2_score
+                if saved_scores[i] != competitors[i].current_points or saved_scores[j] != competitors[j].current_points:
+                    print('ARGHHH')
 
     # saves all the automatas and calculates their average scores
     # before sorting them and returning them
@@ -105,10 +110,11 @@ def tournament(no_contestants=200, competitors=None, saved=False):
     for i, x in enumerate(competitors):
         h_score = saved_scores[i] / (no_contestants - 1)
         avg_score = x.current_points / (no_contestants - 1)
-        if h_score >= 5:
-            print('huh')
+        if h_score >= 5 or h_score != avg_score:
+            print('huhjj')
+            z = 'abasdjask'
         x.current_points = 0
-        bots.append([avg_score, x])
+        bots.append([h_score, x]) # changed from avg_score
 
     bots = sorted(bots, key=lambda kv: kv[0])
     return bots
