@@ -75,7 +75,7 @@ saved = whether there is hashed scores of existing competitors (if there are mul
 """
 
 
-def tournament(no_contestants=200, competitors=None, saved=False):
+def tournament_test(no_contestants=200, competitors=None, saved=False):
     # If new bots need to be generated
     if not competitors:
         graphs = [gen_random_network() for i in range(no_contestants)]

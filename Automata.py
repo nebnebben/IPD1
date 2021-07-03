@@ -102,7 +102,7 @@ automata specifically for using in environments
 
 class Movable_Automaton(Automaton):
 
-    def __init__(self, location, group, nodes=None):
+    def __init__(self, nodes=None, location=None, group=0):
         super().__init__(nodes)
         # [x,y]
         self.location = location
@@ -113,3 +113,7 @@ class Movable_Automaton(Automaton):
         self.momentum = np.array([0, 0])
         self.prev_score = 0
         self.cur_score = 0
+
+    def set_location(self, location):
+        self.location = location
+        self.old_location = location

@@ -1,12 +1,15 @@
+import enviromental_tournament
 from tournament_adv import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-
+from enviromental_tournament import *
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)
+    env = enviromental_tournament.tournament()
+    c_percent, scores = env.basic_tournament(no_rounds=1000, pop_size=100, percentage_kept=0.9)
+    # c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)
     # plt.plot(scores)
     # plt.show()
     # print('complete')

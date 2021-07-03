@@ -65,7 +65,7 @@ def repeated_tournament_evolutionary(no_rounds=100, pop_size=50, percentage_kept
     for i in range(no_rounds):
 
         # Runs a tournament
-        res, coop_total = tournament(pop_size, pop, saved)
+        res, coop_total = tournament_test(pop_size, pop, saved)
         scores = [x[0] for x in res]
         bots = [x[1] for x in res]
         print(min(scores), max(scores), np.mean(scores))

@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import random
 
 class Enviroment_Effect:
 
@@ -53,6 +54,43 @@ class Environment:
         # gaussian variance
         self.gaussian_var = 1
 
+    """
+    Adds new automaton to the board
+    """
+    def add_automaton(self, automaton):
+        # get random board position
+        empty_space = False
+        while(not empty_space):
+            x = random.randint(0, self.size-1)
+            y = random.randint(0, self.size-1)
+            if (x, y) not in self.automata_locations:
+                empty_space = True
+
+        self.automata_locations[(x, y)] = automaton
+        automaton.set_location([x, y])
+
+    # calculates the euclidean distance between 2 points, p1 = [x1, y1], p2 = [x2, y2]
+    def euclidean_distance(self, point1, point2):
+        return math.sqrt(((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2))
+
+    """
+    Returns list of N nearest automata
+    """
+    def get_nearest_automata(self, target_automata, nearest_number):
+        location = target_automata.location
+
+        nearest_automata = []
+        # cycles through all possible automata locations
+        for automata_dist in self.automata_locations.keys():
+            dist = self.euclidean_distance(location, automata_dist)
+            # if not self
+            if dist > 0:
+                nearest_automata.append([automata_dist, self.automata_locations[automata_dist]])
+
+        # sort by distance and then just return closest automata
+        nearest_automata.sort(key=lambda kv: kv[0])
+        return [bot[1] for bot in nearest_automata][:nearest_number]
+
     # normalise vector, sets to a certain magnitude
     # if cond, then only sets vector to magnitude if larger than magnitude
     def normalise_vector(self, vector, magnitude, cond):
@@ -69,14 +107,14 @@ class Environment:
             return vector * magnitude
 
     # Moves current
-    def move_automaton(self, location):
-        agent = self.automata_locations[tuple(location)]
+    def move_automaton(self, automata):
+        # agent = self.automata_locations[tuple(location)]
 
         noise = np.random.normal(0, self.gaussian_var, 2)
-        old_momentum = self.discount_factor * agent.momentum
-        score_diff = (agent.cur_score - agent.prev_score) * 100
+        old_momentum = self.discount_factor * automata.momentum
+        score_diff = (automata.cur_score - automata.prev_score) * 100
 
-        new_momentum = agent.location - agent.old_location
+        new_momentum = automata.location - automata.old_location
         adjusted_momentum = (1 - self.discount_factor) * score_diff * new_momentum
         total_momentum = (old_momentum + adjusted_momentum)
 
@@ -84,14 +122,16 @@ class Environment:
         limit = 4
         total_momentum = self.normalise_vector(total_momentum, limit, True)
 
-        new_location = agent.location + total_momentum + noise
+        new_location = automata.location + total_momentum + noise
         new_location = np.maximum(new_location, [0, 0])
         new_location = np.minimum(new_location, [self.size, self.size])
 
         # update agent
-        agent.old_location = agent.location
-        agent.location = new_location
-        agent.momentum = total_momentum
+        automata.old_location = automata.location
+        automata.location = new_location
+        automata.momentum = total_momentum
+        del self.automata_locations[tuple(automata.old_location)]
+        self.automata_locations[tuple(new_location)] = automata
 
         return new_location
 
