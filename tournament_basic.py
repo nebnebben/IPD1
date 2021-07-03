@@ -21,7 +21,7 @@ def compete(fsm1, fsm2, no_rounds=100, reset=True, printout=True):
 
     fsm1_score = 0
     fsm2_score = 0
-    friend_tally = 0
+    coop_rounds = 0
 
     # Plays out the tournament and gets the scores
     for i in range(no_rounds):
@@ -32,16 +32,16 @@ def compete(fsm1, fsm2, no_rounds=100, reset=True, printout=True):
         fsm2_score += fsm2.move(fsm2_move, fsm1_move, record=False)
 
         if fsm1_move == 'C' and fsm2_move == 'C':
-            friend_tally += 1
+            coop_rounds += 1
 
     fsm1_score /= no_rounds
     fsm2_score /= no_rounds
-    friend_tally /= no_rounds
+    coop_rounds /= no_rounds
 
     if printout:
         print(f'The final scores are FSM1:{fsm1_score} and FSM2:{fsm2_score}')
 
-    return fsm1_score, fsm2_score
+    return fsm1_score, fsm2_score, coop_rounds
 
 
 """
@@ -55,19 +55,13 @@ def hash_score(scores, fsa1, fsa2, no_rounds=100):
     h1 = hash(fsa1)
     h2 = hash(fsa2)
     if (h1, h2) in scores:
-        fsm1_score, fsm2_score = scores[(h1, h2)]
-        fsa1.current_points += fsm1_score # Move outside function
-        fsa2.current_points += fsm2_score
+        fsm1_score, fsm2_score, coop_percent = scores[(h1, h2)]
     else:
-        fsm1_score, fsm2_score = compete(fsa1, fsa2, no_rounds=no_rounds, reset=False, printout=False)
-        scores[(h1, h2)] = fsm1_score, fsm2_score
-        scores[(h2, h1)] = fsm2_score, fsm1_score
-        fsa1.current_points += fsm1_score
-        fsa2.current_points += fsm2_score
+        fsm1_score, fsm2_score, coop_percent = compete(fsa1, fsa2, no_rounds=no_rounds, reset=False, printout=False)
+        scores[(h1, h2)] = fsm1_score, fsm2_score, coop_percent
+        scores[(h2, h1)] = fsm2_score, fsm1_score, coop_percent
 
-    if fsm1_score > 5 or fsm2_score > 5:
-        print('what?')
-    return fsm1_score, fsm2_score
+    return fsm1_score, fsm2_score, coop_percent
 
 
 """
@@ -92,15 +86,22 @@ def tournament(no_contestants=200, competitors=None, saved=False):
     if saved == True:
         saved = {}
 
+    # Saved scores of individual automatons
     saved_scores = [0] * no_contestants
+    # Amount of interactions that are purely cooperative
+    coop_total = 0
 
     # Play every bot off against each other
     for i in range(no_contestants):
         for j in range(i + 1, no_contestants):
             if i != j:
-                fsm1_score, fsm2_score = hash_score(saved, competitors[i], competitors[j])
+                fsm1_score, fsm2_score, coop_percent = hash_score(saved, competitors[i], competitors[j])
                 saved_scores[i] += fsm1_score
                 saved_scores[j] += fsm2_score
+                competitors[i].current_points += fsm1_score
+                competitors[j].current_points += fsm2_score
+                coop_total += coop_percent
+
                 if saved_scores[i] != competitors[i].current_points or saved_scores[j] != competitors[j].current_points:
                     print('ARGHHH')
 
@@ -117,5 +118,8 @@ def tournament(no_contestants=200, competitors=None, saved=False):
         bots.append([h_score, x]) # changed from avg_score
 
     bots = sorted(bots, key=lambda kv: kv[0])
-    return bots
+
+    # Get total coop percentage
+    coop_total /= (no_contestants*(no_contestants-1))/2
+    return bots, coop_total
 

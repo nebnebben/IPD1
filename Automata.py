@@ -94,3 +94,22 @@ class Automaton:
     def __hash__(self):
         nodes = tuple([(x.strat, x.coop, x.defect) for x in self.nodes])
         return hash(nodes)
+
+
+"""
+automata specifically for using in environments
+"""
+
+class Movable_Automaton(Automaton):
+
+    def __init__(self, location, group, nodes=None):
+        super().__init__(nodes)
+        # [x,y]
+        self.location = location
+        self.old_location = location
+        # integer to represent group
+        self.group = group
+        # [x, y] direction + magnitude
+        self.momentum = np.array([0, 0])
+        self.prev_score = 0
+        self.cur_score = 0

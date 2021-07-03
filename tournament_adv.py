@@ -23,15 +23,13 @@ def cooperate_percent(pop):
     return coop_avg
 
 # roulette wheel selection
-# PASS BY FUCKING REFERENCE
-# CHANGE THIS SO IT DEEPCoPIES OBJECTS
 def roulette_select(size, population):
     out = []
     total = sum([x[0] for x in population])
     selection_probs = [x[0] / total for x in population] # Normalises probability
     for i in range(size):
         choice = population[np.random.choice(len(population), p=selection_probs)][1]
-        out.append(deepcopy(choice)) # Deepcopy!
+        out.append(deepcopy(choice))
     return out
 
 
@@ -65,15 +63,16 @@ def repeated_tournament_evolutionary(no_rounds=100, pop_size=50, percentage_kept
     original_pop = {hash(ind) for ind in pop}
 
     for i in range(no_rounds):
-        # clear_output(wait=True)
-        # Gets co-operation percentage
-        c_percent.append(cooperate_percent(pop))
 
         # Runs a tournament
-        res = tournament(pop_size, pop, saved)
+        res, coop_total = tournament(pop_size, pop, saved)
         scores = [x[0] for x in res]
         bots = [x[1] for x in res]
         print(min(scores), max(scores), np.mean(scores))
+
+        # Gets co-operation percentage
+        # c_percent.append(cooperate_percent(pop))
+        c_percent.append(coop_total)
 
         # Gets the average scores
         avg_scores.append(sum(scores) / len(scores))
