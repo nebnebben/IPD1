@@ -53,6 +53,29 @@ class Environment:
         self.discount_factor = 0.8
         # gaussian variance
         self.gaussian_var = 1
+        # enviromental effects
+        self.effects = []
+
+    # location, affected_groups, effect, strength, grid_size
+    """
+    Adds enviromental effect
+    """
+    def add_effect(self, location, affected_groups, effect, strength):
+        effect = Enviroment_Effect(location, affected_groups, effect, strength, self.size)
+        self.effects.append(effect)
+
+    """
+    Gets modifier to score based on enviroment
+    """
+    def get_modifiers(self, automata):
+        modifier = 1
+        for effect in self.effects:
+            # checks whether modifier applies
+            if automata.group in effect.affected_groups:
+                # gets the effect strength based on the automata location, applies to modifier
+                modifier *= effect.effect_strength(automata.location)
+
+        return modifier
 
     """
     Adds new automaton to the board
@@ -67,7 +90,7 @@ class Environment:
                 empty_space = True
 
         self.automata_locations[(x, y)] = automaton
-        automaton.set_location([x, y])
+        automaton.set_location(np.array([x, y]))
 
     # calculates the euclidean distance between 2 points, p1 = [x1, y1], p2 = [x2, y2]
     def euclidean_distance(self, point1, point2):
@@ -126,10 +149,15 @@ class Environment:
         new_location = np.maximum(new_location, [0, 0])
         new_location = np.minimum(new_location, [self.size, self.size])
 
+        # round location to nearest 3 decimal places
+        new_location = np.round(new_location, 3)
+
         # update agent
         automata.old_location = automata.location
         automata.location = new_location
+        automata.location_list.append(new_location)
         automata.momentum = total_momentum
+
         del self.automata_locations[tuple(automata.old_location)]
         self.automata_locations[tuple(new_location)] = automata
 

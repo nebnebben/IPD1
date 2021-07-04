@@ -123,3 +123,47 @@ def tournament_test(no_contestants=200, competitors=None, saved=False):
     coop_total /= (no_contestants*(no_contestants-1))/2
     return bots, coop_total
 
+
+def tournament2(enviroment, no_contestants=200, competitors=None, saved={}):
+
+    # Saved scores of individual automatons
+    saved_scores = [0] * no_contestants
+    # Amount of interactions that are purely cooperative
+    coop_total = 0
+
+    # Update automata scores
+    for i in range(no_contestants):
+        competitors[i].prev_score = competitors[i].cur_score
+
+
+    # Play every bot off against each other
+    for i in range(no_contestants):
+        for j in range(i + 1, no_contestants):
+            if i != j:
+                fsm1_score, fsm2_score, coop_percent = hash_score(saved, competitors[i], competitors[j])
+                # Add modifiers to score
+                fsm1_score *= enviroment.get_modifiers(competitors[i])
+                fsm2_score *= enviroment.get_modifiers(competitors[j])
+                # saves scores
+                saved_scores[i] += fsm1_score
+                saved_scores[j] += fsm2_score
+                competitors[i].current_points += fsm1_score
+                competitors[j].current_points += fsm2_score
+                coop_total += coop_percent
+
+    # saves all the automatas and calculates their average scores
+    # before sorting them and returning them
+    bots = []
+    for i, x in enumerate(competitors):
+        h_score = saved_scores[i] / (no_contestants - 1)
+        avg_score = x.current_points / (no_contestants - 1)
+        x.current_points = 0
+        bots.append([h_score, x]) # changed from avg_score
+        # update automata score
+        competitors[i].cur_score = h_score
+
+    bots = sorted(bots, key=lambda kv: kv[0])
+
+    # Get total coop percentage
+    coop_total /= (no_contestants*(no_contestants-1))/2
+    return bots, coop_total

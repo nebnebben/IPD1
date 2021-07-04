@@ -23,13 +23,18 @@ def cooperate_percent(pop):
     return coop_avg
 
 # roulette wheel selection
+"""
+Takes in a population, and the output size
+Returns the nodes of that population with probability
+equal to how successful that automata is
+"""
 def roulette_select(size, population):
     out = []
     total = sum([x[0] for x in population])
     selection_probs = [x[0] / total for x in population] # Normalises probability
     for i in range(size):
         choice = population[np.random.choice(len(population), p=selection_probs)][1]
-        out.append(deepcopy(choice))
+        out.append(deepcopy(choice.nodes))
     return out
 
 

@@ -8,7 +8,7 @@ from enviromental_tournament import *
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     env = enviromental_tournament.tournament()
-    c_percent, scores = env.basic_tournament(no_rounds=1000, pop_size=100, percentage_kept=0.9)
+    c_percent, scores = env.basic_tournament(no_rounds=200, pop_size=100, percentage_kept=0.9)
     # c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)
     # plt.plot(scores)
     # plt.show()
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     marker_size = 5000 / len(scores)
     plt.scatter(c_percent, scores, c=c, cmap=cmap, s=marker_size)
     plt.title('Populations over time')
-    plt.xlabel('% of Cooperative States')
+    plt.xlabel('% of Cooperative Interactions')
     plt.ylabel('Average Population Score')
     plt.show()
 

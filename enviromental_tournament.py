@@ -1,8 +1,12 @@
+import copy
+
+import environments
 from Automata import *
 from Network_Generation import *
 from tournament_basic import *
 from tournament_adv import *
 from copy import deepcopy
+from environments import *
 
 class tournament:
 
@@ -18,19 +22,33 @@ class tournament:
 
         # Mutates the other half
         mutate_size = pop_size - kept
-        new_bots = roulette_select(mutate_size, res[pop_size - kept:])
+        new_nodes = roulette_select(mutate_size, res[pop_size - kept:])
 
-        for i in range(len(new_bots)):
-            new_bots[i].nodes = mutate_network(new_bots[i])
+        for i in range(len(new_nodes)):
+            pop[i].nodes = mutate_network(new_nodes[i])
+            # new_bots[i].nodes = mutate_network(new_bots[i])
 
-        pop = kept_bots + new_bots
+        # pop = kept_bots + new_bots
         return pop
+
+    def move_pop(self, env, pop):
+
+        for automaton in pop:
+            env.move_automaton(automaton)
 
 
     def basic_tournament(self, no_rounds=100, pop_size=50, percentage_kept=0.8):
         # Generates the initial population
         graphs = [gen_random_network() for i in range(pop_size)]
-        pop = [Automaton(graphs[i]) for i in range(pop_size)]
+        pop = [Movable_Automaton(graphs[i]) for i in range(pop_size)]
+
+        # Sets up environment
+        env = environments.Environment(100)
+        # location, affected_groups, effect, strength
+        env.add_effect([20, 30], [0], None, 2)
+        # add automata
+        for automata in pop:
+            env.add_automaton(automata)
 
         # How much of the population should be kept
         kept = round(pop_size * percentage_kept)
@@ -47,18 +65,19 @@ class tournament:
         # Saves the original population to see how much is left by the end
         original_pop = {hash(ind) for ind in pop}
 
-
         for i in range(no_rounds):
-            self.automata_history.append(pop)
+            self.automata_history.append(copy.deepcopy(pop))
 
             # Runs a tournament
-            res, coop_total = tournament_test(pop_size, pop, saved)
+            res, coop_total = tournament2(env, pop_size, pop, saved)
             scores = [x[0] for x in res]
             pop = [x[1] for x in res]
             print(min(scores), max(scores), np.mean(scores))
 
+            # move pop
+            self.move_pop(env, pop)
+
             # Gets co-operation percentage
-            # c_percent.append(cooperate_percent(pop))
             c_percent.append(coop_total)
 
             # Gets the average scores

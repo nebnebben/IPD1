@@ -51,8 +51,8 @@ This gets an existing automaton and mutates the network
 """
 
 
-def mutate_network(automaton, mutate_rate=0.05):
-    nodes = automaton.nodes
+def mutate_network(nodes, mutate_rate=0.05):
+    # nodes = automaton.nodes
     no_nodes = len(nodes)
 
     # Chance to add or remove a node

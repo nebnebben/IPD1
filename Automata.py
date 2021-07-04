@@ -107,6 +107,7 @@ class Movable_Automaton(Automaton):
         # [x,y]
         self.location = location
         self.old_location = location
+        self.location_list = []
         # integer to represent group
         self.group = group
         # [x, y] direction + magnitude
