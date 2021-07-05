@@ -8,7 +8,7 @@ from enviromental_tournament import *
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     env = enviromental_tournament.tournament()
-    c_percent, scores = env.basic_tournament(no_rounds=200, pop_size=100, percentage_kept=0.9)
+    c_percent, scores = env.basic_tournament(no_rounds=300, pop_size=200, percentage_kept=0.95)
     # c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)
     # plt.plot(scores)
     # plt.show()
@@ -23,4 +23,5 @@ if __name__ == '__main__':
     plt.ylabel('Average Population Score')
     plt.show()
 
+print('done')
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

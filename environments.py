@@ -38,7 +38,7 @@ class Enviroment_Effect:
         # work out dist to point
         dist_to_point = self.euclidean_distance(self.location, cur_location)
         modifier = self.strength - dist_to_point*self.distance_value
-        modifier = max(1, modifier)
+        # modifier = max(1, modifier) # only if can go out of bounds
         return modifier
 
 
@@ -48,7 +48,7 @@ class Environment:
         # (x,y): Automaton
         self.automata_locations = {}
         self.size = size
-        self.board = [[0]*size]*size
+        self.board = np.zeros((size, size))
         # between 0 and 1, 0 - only consider past diff, 1 - only current diff
         self.discount_factor = 0.8
         # gaussian variance
@@ -149,8 +149,12 @@ class Environment:
         new_location = np.maximum(new_location, [0, 0])
         new_location = np.minimum(new_location, [self.size, self.size])
 
+        # make sure not exactly in same spot as existing automata
+        if tuple(new_location) in self.automata_locations:
+            new_location += np.random.normal(0, 0.5, 2)
+
         # round location to nearest 3 decimal places
-        new_location = np.round(new_location, 3)
+        new_location = np.round(new_location, 6)
 
         # update agent
         automata.old_location = automata.location
@@ -158,13 +162,11 @@ class Environment:
         automata.location_list.append(new_location)
         automata.momentum = total_momentum
 
+        # if something like (0,100) - multiple automata can occupy same place, not accounted for
         del self.automata_locations[tuple(automata.old_location)]
         self.automata_locations[tuple(new_location)] = automata
 
         return new_location
-
-
-
 
     # Moves current
     def move_automaton_test(self, old_location, cur_location, momentum, new_score, old_score):

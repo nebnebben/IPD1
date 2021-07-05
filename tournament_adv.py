@@ -30,8 +30,18 @@ equal to how successful that automata is
 """
 def roulette_select(size, population):
     out = []
-    total = sum([x[0] for x in population])
-    selection_probs = [x[0] / total for x in population] # Normalises probability
+
+    # to deal with negative scores add smallest value to all in list
+    scores = [x[0] for x in population]
+    if scores[0] < 0:
+        min_score = -scores[0] + 1e-5
+        for i in range(len(scores)):
+            scores[i] += min_score
+
+    # total = sum([x[0] for x in population])
+    total = sum(scores)
+    selection_probs = np.array([x / total for x in scores]) # Normalises probability
+
     for i in range(size):
         choice = population[np.random.choice(len(population), p=selection_probs)][1]
         out.append(deepcopy(choice.nodes))

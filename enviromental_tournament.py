@@ -32,9 +32,18 @@ class tournament:
         return pop
 
     def move_pop(self, env, pop):
-
         for automaton in pop:
             env.move_automaton(automaton)
+
+    """
+    Updates useful history stuff
+    But removes redundant info, such as movement history for bots
+    """
+    def update_history(self, pop):
+        copied_pop = copy.deepcopy(pop)
+        for automaton in copied_pop:
+            automaton.location_list = []
+        self.automata_history.append(copied_pop)
 
 
     def basic_tournament(self, no_rounds=100, pop_size=50, percentage_kept=0.8):
@@ -45,7 +54,12 @@ class tournament:
         # Sets up environment
         env = environments.Environment(100)
         # location, affected_groups, effect, strength
-        env.add_effect([20, 30], [0], None, 2)
+        # env.add_effect([50, 50], [0], None, 2)
+
+        env.add_effect([0, 0], [0], None, -1)
+        env.add_effect([99, 99], [0], None, -1)
+        env.add_effect([45, 45], [0], None, 5)
+
         # add automata
         for automata in pop:
             env.add_automaton(automata)
@@ -66,13 +80,14 @@ class tournament:
         original_pop = {hash(ind) for ind in pop}
 
         for i in range(no_rounds):
-            self.automata_history.append(copy.deepcopy(pop))
+            # Updates history
+            self.update_history(pop)
 
             # Runs a tournament
             res, coop_total = tournament2(env, pop_size, pop, saved)
             scores = [x[0] for x in res]
             pop = [x[1] for x in res]
-            print(min(scores), max(scores), np.mean(scores))
+            print(min(scores), max(scores), np.mean(scores), coop_total)
 
             # move pop
             self.move_pop(env, pop)
@@ -84,6 +99,9 @@ class tournament:
             avg_scores.append(sum(scores) / len(scores))
 
             pop = self.update_pop(pop, kept, res)
+
+            # Updates history
+            self.update_history(pop)
 
         # Determines what proportion of the orignal bots remain
         seen = 0
