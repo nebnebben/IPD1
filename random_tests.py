@@ -6,8 +6,8 @@ import numpy as np
 
 size = 100
 env = Environment(size)
-env.add_effect([0, 0], [0], None, -1)
-env.add_effect([99, 99], [0], None, -1)
+# env.add_effect([0, 0], [0], None, -1)
+# env.add_effect([99, 99], [0], None, -1)
 env.add_effect([45, 45], [0], None, 5)
 
 
@@ -25,5 +25,5 @@ for i in range(size):
         board[i][j] = env.get_modifiers(bot)
         # board[i][j] = env.effects[0].effect_strength([i*10, j*10])
 # pprint.pprint(board)
-print(np.max(board))
+print(np.max(board), np.min(board))
 plt.imshow(board, cmap='hot', interpolation='nearest')

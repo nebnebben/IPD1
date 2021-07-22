@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import random
+import heapq
 
 class Enviroment_Effect:
 
@@ -56,6 +57,9 @@ class Environment:
         # enviromental effects
         self.effects = []
 
+        # temp
+        self.temp_automata = {}
+
     # location, affected_groups, effect, strength, grid_size
     """
     Adds enviromental effect
@@ -91,6 +95,7 @@ class Environment:
 
         self.automata_locations[(x, y)] = automaton
         automaton.set_location(np.array([x, y]))
+        automaton.location_list.append([x, y])
 
     # calculates the euclidean distance between 2 points, p1 = [x1, y1], p2 = [x2, y2]
     def euclidean_distance(self, point1, point2):
@@ -108,7 +113,7 @@ class Environment:
             dist = self.euclidean_distance(location, automata_dist)
             # if not self
             if dist > 0:
-                nearest_automata.append([automata_dist, self.automata_locations[automata_dist]])
+                nearest_automata.append([dist, self.automata_locations[automata_dist]])
 
         # sort by distance and then just return closest automata
         nearest_automata.sort(key=lambda kv: kv[0])
@@ -129,8 +134,47 @@ class Environment:
             vector /= vector_size
             return vector * magnitude
 
+    # Fits current real location to integer, board location
+    # use heap
+    def fit_to_grid(self, location, cur_location):
+        closest = np.round(location)
+        # if can go to nearest location, then do that
+        # if tuple(closest) not in self.automata_locations or np.array_equal(closest, cur_location):
+        if tuple(closest) not in self.automata_locations:
+            return closest
+        # or if it's empty do bfs to find nearest open space
+        directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+        found_empty = False
+        heap = []
+        cur_spot = closest
+        seen = set()
+        seen.add(tuple(closest))
+        while(not found_empty):
+            for d in directions:
+                # gets the dist to the potential spot
+                temp = cur_spot + d
+                # if not in bounds(
+                if temp[0] < 0 or temp[1] < 0 or temp[0] > (self.size - 1) or temp[1] > (self.size - 1):
+                    continue
+                if tuple(temp) in seen:
+                    continue
+                seen.add(tuple(temp))
+                dist = self.euclidean_distance(location, temp)
+                # ensure uniqueness of key by adding random gaussian noise, otherwise multiple of the
+                # same key type which causes error
+                noise = np.random.normal(0, 0.0001)
+                dist += noise
+                # pushes to the heap
+                keyval_pair = (dist, temp)
+                heapq.heappush(heap, keyval_pair)
+
+            cur_spot = heapq.heappop(heap)[1]
+            # if tuple(cur_spot) not in self.automata_locations or np.array_equal(cur_spot, cur_location):
+            if tuple(cur_spot) not in self.automata_locations:
+                return temp
+
     # Moves current
-    def move_automaton(self, automata):
+    def move_automaton(self, automata, grid=False):
         # agent = self.automata_locations[tuple(location)]
 
         noise = np.random.normal(0, self.gaussian_var, 2)
@@ -149,12 +193,17 @@ class Environment:
         new_location = np.maximum(new_location, [0, 0])
         new_location = np.minimum(new_location, [self.size, self.size])
 
-        # make sure not exactly in same spot as existing automata
-        if tuple(new_location) in self.automata_locations:
-            new_location += np.random.normal(0, 0.5, 2)
+        if grid:
+            del self.automata_locations[tuple(automata.location)]
+            new_location = self.fit_to_grid(new_location, automata.location)
+        else:
+            # make sure not exactly in same spot as existing automata
+            if tuple(new_location) in self.automata_locations:
+                new_location += np.random.normal(0, 0.5, 2)
+            del self.automata_locations[tuple(automata.location)]
 
         # round location to nearest 3 decimal places
-        new_location = np.round(new_location, 6)
+        new_location = np.round(new_location, 9)
 
         # update agent
         automata.old_location = automata.location
@@ -162,9 +211,8 @@ class Environment:
         automata.location_list.append(new_location)
         automata.momentum = total_momentum
 
-        # if something like (0,100) - multiple automata can occupy same place, not accounted for
-        del self.automata_locations[tuple(automata.old_location)]
         self.automata_locations[tuple(new_location)] = automata
+        self.temp_automata[tuple(new_location)] = automata
 
         return new_location
 

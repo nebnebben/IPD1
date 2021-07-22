@@ -3,12 +3,29 @@ from tournament_adv import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from enviromental_tournament import *
+from utility_and_viz import *
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    env = enviromental_tournament.tournament()
-    c_percent, scores = env.basic_tournament(no_rounds=300, pop_size=200, percentage_kept=0.95)
+    tournament = enviromental_tournament.tournament(100)
+    # tournament.add_effect([20, 20], [0], None, 2)
+    # tournament.add_effect([80, 80], [1], None, 2)
+    # tournament.add_effect([50, 50], [2], None, 2)
+    tournament.add_group(100)
+    # tournament.add_group(100)
+    # tournament.add_group(100)
+    # tournament.add_group(100)
+    # tournament.add_group(100)
+    # tournament.add_group(100)
+
+    # tournament.add_group(200)
+    # tournament.add_group(200)
+
+    # for i in range(20):
+    #     tournament.add_group(25)
+
+    c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=1000, pop_size=100, percentage_kept=0.9)
     # c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)
     # plt.plot(scores)
     # plt.show()
@@ -24,4 +41,5 @@ if __name__ == '__main__':
     plt.show()
 
 print('done')
+print(np.mean(c_percent))
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

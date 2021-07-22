@@ -7,65 +7,109 @@ from tournament_basic import *
 from tournament_adv import *
 from copy import deepcopy
 from environments import *
+import time
+from lru import LRU
 
 class tournament:
 
-    def __init__(self):
+    def __init__(self, size):
         # stores history of all automata
         self.automata_history = []
+        self.mutate_rate = 0.03
+        self.no_nodes = 8
+        self.env = environments.Environment(size)
 
-    def update_pop(self, pop, kept, res):
+        # list of lists
+        # index corresponds to group number
+        self.pop = []
+        self.saved = LRU(100000)
+
+        self.cooperate = []
+
+    """
+    Updates the population by replacing existing individuals with random copies and 
+    then mutating them. classic=True only does this to a certain subset of the population
+    classic=False does this to the whole population
+    """
+
+    def update_pop(self, pop, kept, results, classic=False):
 
         pop_size = len(pop)
-        # Keeps the top performing half
-        kept_bots = pop[pop_size - kept:]
 
-        # Mutates the other half
-        mutate_size = pop_size - kept
-        new_nodes = roulette_select(mutate_size, res[pop_size - kept:])
+        # mutates some of the bots
+        if classic:
+            # Mutates the other half
+            mutate_size = pop_size - kept
+            # list of [[own_nodes, diff_nodes], ...]
+            new_nodes = roulette_select(mutate_size, results[pop_size - kept:])
+        # mutates all of the bots
+        else:
+            new_nodes = roulette_select(pop_size, results)
 
+        # Mutates own and diff nodes
         for i in range(len(new_nodes)):
-            pop[i].nodes = mutate_network(new_nodes[i])
-            # new_bots[i].nodes = mutate_network(new_bots[i])
+            pop[i].own_nodes = mutate_network(new_nodes[i][0], self.mutate_rate, self.no_nodes)
+            pop[i].diff_nodes = mutate_network(new_nodes[i][1], self.mutate_rate, self.no_nodes)
 
         # pop = kept_bots + new_bots
         return pop
 
-    def move_pop(self, env, pop):
+    def move_pop(self, pop):
         for automaton in pop:
-            env.move_automaton(automaton)
+            self.env.move_automaton(automaton)
+
+        # location_set = {}
+        # for p in pop:
+        #     temp = tuple(p.location)
+        #     if temp not in location_set:
+        #         location_set[temp] = 1
+        #     else:
+        #         location_set[temp] += 1
+        #
+        # for v in location_set.values():
+        #     if v > 1:
+        #         print('here')
 
     """
     Updates useful history stuff
     But removes redundant info, such as movement history for bots
     """
-    def update_history(self, pop):
-        copied_pop = copy.deepcopy(pop)
-        for automaton in copied_pop:
-            automaton.location_list = []
+    def update_history(self):
+        copied_pop = copy.deepcopy(self.pop)
+        for group in copied_pop:
+            for automaton in group:
+                automaton.location_list = []
         self.automata_history.append(copied_pop)
 
+    # def add_groups
+    """
+    
+    """
+    def add_group(self, number):
+        own_nodes = [gen_random_network(self.no_nodes) for i in range(number)]
+        diff_nodes = [gen_random_network(self.no_nodes) for i in range(number)]
+        group = [Movable_Automaton(own_nodes[i], diff_nodes[i], group=len(self.pop), id=i) for i in range(number)]
+        for automata in group:
+            self.env.add_automaton(automata)
+
+        self.pop.append(group)
+
+
+    """
+    Adds effect to the environment
+    """
+    def add_effect(self, location, affected_groups, type, strength):
+        self.env.add_effect(location, affected_groups, type, strength)
 
     def basic_tournament(self, no_rounds=100, pop_size=50, percentage_kept=0.8):
-        # Generates the initial population
-        graphs = [gen_random_network() for i in range(pop_size)]
-        pop = [Movable_Automaton(graphs[i]) for i in range(pop_size)]
-
-        # Sets up environment
-        env = environments.Environment(100)
-        # location, affected_groups, effect, strength
-        # env.add_effect([50, 50], [0], None, 2)
-
-        env.add_effect([0, 0], [0], None, -1)
-        env.add_effect([99, 99], [0], None, -1)
-        env.add_effect([45, 45], [0], None, 5)
-
-        # add automata
-        for automata in pop:
-            env.add_automaton(automata)
+        # flattens groups into single list
+        # but is just a list of references so it doesn't matter
+        overall_pop = np.array(self.pop).flatten()
 
         # How much of the population should be kept
-        kept = round(pop_size * percentage_kept)
+        # kept = round(pop_size * percentage_kept)
+        # list of numbers, according to individual population sizes
+        kept = [round(len(group)*percentage_kept) for group in self.pop]
 
         # Stores average scores
         avg_scores = []
@@ -74,45 +118,81 @@ class tournament:
 
         # Saving the scores of automata that play against each other
         # So it doesn't need to recomputed for future generations
-        saved = {}
+        self.saved = LRU(len(overall_pop)**2)
 
         # Saves the original population to see how much is left by the end
-        original_pop = {hash(ind) for ind in pop}
+        original_pop = {hash(ind) for ind in overall_pop}
+
+        # stores intial pop
+        self.update_history()
+
+        start_time = time.time()
 
         for i in range(no_rounds):
             # Updates history
-            self.update_history(pop)
+            # print('')
+            # start_time = time.time()
+            # self.update_history()
+            # print(time.time()-start_time)
 
             # Runs a tournament
-            res, coop_total = tournament2(env, pop_size, pop, saved)
-            scores = [x[0] for x in res]
-            pop = [x[1] for x in res]
-            print(min(scores), max(scores), np.mean(scores), coop_total)
+            # start_time = time.time()
+            # res, coop_total = tournament2(self.env, self.pop, self.saved)
+
+            res, coop_total, coop_total2 = tournament_test(self.env, self.pop, self.saved)
+            # print(time.time() - start_time)
+            # print('')
+            if len(self.saved) > (len(overall_pop)*3)**2:
+                self.saved = {}
+            # scores = [x[0] for x in res]
+            # pop = [x[1] for x in res]
+            # print(min(scores), max(scores), np.mean(scores), coop_total)
+
+            scores = [[x[0] for x in group] for group in res]
+            pop = [[x[1] for x in group] for group in res]
+            print(np.min(scores), np.max(scores), np.mean(scores), coop_total, coop_total2)
+            # print(np.mean([x.location for x in self.pop[0]]))
 
             # move pop
-            self.move_pop(env, pop)
+            for group in self.pop:
+                self.move_pop(group)
 
             # Gets co-operation percentage
-            c_percent.append(coop_total)
+            c_percent.append(coop_total2)
+            self.cooperate.append(coop_total)
 
             # Gets the average scores
-            avg_scores.append(sum(scores) / len(scores))
+            # avg_scores.append(sum(scores) / len(scores))
+            avg_scores.append(np.sum(scores) / len(np.array(scores).flatten()))
 
-            pop = self.update_pop(pop, kept, res)
+            # Updates each group in the population, evolution and mutation
+            # on per group basis
+            # for i, group in enumerate(self.pop):
+            #     self.pop[i] = self.update_pop(group, kept[i], res)
+            # self.update_pop(pop, kept[0], res)
+            # self.update_pop(pop[0], kept[0], res[0]) # works for some reason
+            for i, group in enumerate(pop):
+                self.update_pop(group, kept[i], res[i])
 
             # Updates history
-            self.update_history(pop)
+            # self.update_history()
 
         # Determines what proportion of the orignal bots remain
         seen = 0
-        for x in pop:
+        overall_pop = np.array(self.pop).flatten()
+        for x in overall_pop:
             if hash(x) in original_pop:
                 seen += 1
 
-        print(f'{seen / pop_size} of the original bots remain')
+        print(f'{seen / len(original_pop)} of the original bots remain')
 
         # How many hashed scores are there
-        print(len(saved))
+        print(len(self.saved))
+        self.saved = {}
+        # final time
+        time_taken = time.time()-start_time
+        print(f'time {time_taken}')
+
         # Returns co-operation percentages and average scores of the generato
-        return c_percent, avg_scores
+        return c_percent, avg_scores, coop_total, time_taken
 

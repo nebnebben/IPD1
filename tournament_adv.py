@@ -40,11 +40,12 @@ def roulette_select(size, population):
 
     # total = sum([x[0] for x in population])
     total = sum(scores)
-    selection_probs = np.array([x / total for x in scores]) # Normalises probability
+    selection_probs = np.array([x / total for x in scores]) # Normalises G
 
+    # Gets random choices from the population and records their nodes
     for i in range(size):
         choice = population[np.random.choice(len(population), p=selection_probs)][1]
-        out.append(deepcopy(choice.nodes))
+        out.append(deepcopy([choice.own_nodes, choice.diff_nodes]))
     return out
 
 
