@@ -89,7 +89,7 @@ def one_group_environment(environments, save_ind, file_path=None):
         np.save(f'{file_path}/environ_tests/{f_name}', save_file)
 
 
-n_groups_basic(1, False, 50, exp_repeat=1)
+# n_groups_basic(1, False, 50, exp_repeat=1)
 
 # power = [1.1, 3, 5, 10, 20]
 # for p in power:
