@@ -8,10 +8,13 @@ import numpy as np
 import datetime
 
 
-def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds=1000):
+def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds=1000, file_path=None):
     print(f'basic groups_{number_groups} size_{group_size} no_rounds_{no_rounds}')
 
-    with open("test_data/random_stuff/exp/group_tests/time_taken.txt", "a") as file_object:
+    if not file_path:
+        file_path = 'test_data/random_stuff/exp'
+
+    with open(f"{file_path}/group_tests/time_taken.txt", "a") as file_object:
         file_object.write(f'basic groups_{number_groups} size_{group_size}  no_rounds_{no_rounds}\n')
 
     save_file = []
@@ -21,28 +24,30 @@ def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds
         for n in range(number_groups):
             tournament.add_group(100)
 
-        c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=no_rounds, pop_size=100, percentage_kept=0.9)
+        c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=no_rounds, percentage_kept=0.9)
         to_be_saved = tournament
         if not save_ind:
             save_file.append(to_be_saved)
         
-        with open("test_data/random_stuff/exp/group_tests/time_taken.txt", "a") as file_object:
+        with open(f"{file_path}/group_tests/time_taken.txt", "a") as file_object:
             file_object.write(f'{time_taken} \n')
 
         if save_ind:
             f_name = f'basic groups_{number_groups}_size_{group_size}_no_rounds_{no_rounds}_exp{i}'
-            np.save(f'test_data/random_stuff/exp/group_tests/{f_name}', to_be_saved)
+            np.save(f'{file_path}/group_tests/{f_name}', to_be_saved)
 
     if not save_ind:
         d_time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         name = f'basic groups_{number_groups} size_{group_size} no_rounds_{no_rounds}'
         f_name = d_time + name
 
-        np.save(f'test_data/random_stuff/exp/group_tests/{f_name}', save_file)
+        np.save(f'{file_path}/group_tests/{f_name}', save_file)
 
     # environments = list of lists
     # effect is location, group_affected, None, strength
-def one_group_environment(environments, save_ind):
+def one_group_environment(environments, save_ind, file_path=None):
+    if not file_path:
+        file_path = 'test_data/random_stuff/exp'
 
     total_id = ''
     for env in environments:
@@ -53,7 +58,7 @@ def one_group_environment(environments, save_ind):
 
     print(f'environment test {total_id}')
 
-    with open("test_data/random_stuff/exp/environ_tests/time_taken.txt", "a") as file_object:
+    with open(f"{file_path}/environ_tests/time_taken.txt", "a") as file_object:
         file_object.write(f'one group env {total_id}  \n')
 
     save_file = []
@@ -65,26 +70,26 @@ def one_group_environment(environments, save_ind):
         for env in environments:
             tournament.add_effect(env[0], env[1], env[2], env[3])
 
-        c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=1000, pop_size=100,
+        c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=1000,
                                                                                 percentage_kept=0.9)
         to_be_saved = tournament
         if not save_ind:
             save_file.append(to_be_saved)
 
-        with open("test_data/random_stuff/exp/environ_tests/time_taken.txt", "a") as file_object:
+        with open(f"{file_path}/environ_tests/time_taken.txt", "a") as file_object:
             file_object.write(f'{time_taken} \n')
 
         if save_ind:
             f_name = f'one_group_environment{total_id}_exp{i}'
-            np.save(f'test_data/random_stuff/exp/environ_tests/{f_name}', to_be_saved)
+            np.save(f'{file_path}/environ_tests/{f_name}', to_be_saved)
 
     if not save_ind:
         f_name = f'one_group_environment{total_id}'
 
-        np.save(f'test_data/random_stuff/exp/environ_tests/{f_name}', save_file)
+        np.save(f'{file_path}/environ_tests/{f_name}', save_file)
 
 
-n_groups_basic(1, False, 50)
+n_groups_basic(1, False, 50, exp_repeat=1)
 
 # power = [1.1, 3, 5, 10, 20]
 # for p in power:

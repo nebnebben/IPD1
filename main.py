@@ -15,17 +15,6 @@ if __name__ == '__main__':
     tournament.add_effect([0, 0], [0], 'noise', 1.1)
     # for i in range(5):
     tournament.add_group(50)
-    # tournament.add_group(100)
-    # tournament.add_group(100)
-    # tournament.add_group(100)
-    # tournament.add_group(100)
-    # tournament.add_group(100)
-
-    # tournament.add_group(200)
-    # tournament.add_group(200)
-
-    # for i in range(20):
-    #     tournament.add_group(25)
 
     c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=10000, percentage_kept=0.9)
     # c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)

@@ -5,11 +5,19 @@ import heapq
 
 class Enviroment_Effect:
 
-    def __init__(self, location, affected_groups, effect_type, strength, grid_size):
-        self.location = location
+    def __init__(self, location, affected_groups, effect_type, strength, grid_size, location_sequence=None):
+        self.location_sequence = location_sequence
+        self.ind = 0
+
+        if location_sequence:
+            self.location = self.location_sequence[self.ind]
+        else:
+            self.location = location
+
         self.affected_groups = affected_groups
         self.type = effect_type
         self.strength = strength
+        self.grid_size = grid_size
 
         # Calculates distance modifier based on location + grid_size
         furthest_point = self.get_furthest_point(grid_size)
@@ -44,6 +52,12 @@ class Enviroment_Effect:
             modifier -= 1
 
         return modifier
+
+    def adjust_location(self):
+        self.ind = (self.ind + 1) % len(self.location_sequence)
+        self.location = self.location_sequence[self.ind]
+        furthest_point = self.get_furthest_point(self.grid_size)
+        self.distance_value = (self.strength - 1)/furthest_point
 
 
 class Environment:

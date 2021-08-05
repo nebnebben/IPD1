@@ -28,6 +28,7 @@ class tournament:
         self.scores = []
         self.noise = []
 
+
     """
     Updates the population by replacing existing individuals with random copies and 
     then mutating them. classic=True only does this to a certain subset of the population
