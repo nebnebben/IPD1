@@ -25,6 +25,8 @@ class tournament:
         self.saved = LRU(100000)
 
         self.cooperate = []
+        self.scores = []
+        self.noise = []
 
     """
     Updates the population by replacing existing individuals with random copies and 
@@ -101,7 +103,7 @@ class tournament:
     def add_effect(self, location, affected_groups, type, strength):
         self.env.add_effect(location, affected_groups, type, strength)
 
-    def basic_tournament(self, no_rounds=100, pop_size=50, percentage_kept=0.8):
+    def basic_tournament(self, no_rounds=100, percentage_kept=0.8):
         # flattens groups into single list
         # but is just a list of references so it doesn't matter
         overall_pop = np.array(self.pop).flatten()
@@ -139,7 +141,7 @@ class tournament:
             # start_time = time.time()
             # res, coop_total = tournament2(self.env, self.pop, self.saved)
 
-            res, coop_total, coop_total2 = tournament_test(self.env, self.pop, self.saved)
+            res, coop_total, coop_total2, noise_total = tournament_test(self.env, self.pop, self.saved)
             # print(time.time() - start_time)
             # print('')
             if len(self.saved) > (len(overall_pop)*3)**2:
@@ -150,7 +152,8 @@ class tournament:
 
             scores = [[x[0] for x in group] for group in res]
             pop = [[x[1] for x in group] for group in res]
-            print(np.min(scores), np.max(scores), np.mean(scores), coop_total, coop_total2)
+            self.scores.append(np.mean(scores, axis=1))
+            print(np.min(scores), np.max(scores), np.mean(scores), coop_total, coop_total2, noise_total)
             # print(np.mean([x.location for x in self.pop[0]]))
 
             # move pop
@@ -160,6 +163,7 @@ class tournament:
             # Gets co-operation percentage
             c_percent.append(coop_total2)
             self.cooperate.append(coop_total)
+            self.noise.append(noise_total)
 
             # Gets the average scores
             # avg_scores.append(sum(scores) / len(scores))

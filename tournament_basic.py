@@ -1,15 +1,42 @@
 from Automata import *
 from Network_Generation import *
+import numpy as np
+
+"""
+Adds noise to moves
+moves = [fsm1_move, fsm2_move]
+noise = [fsm1_noise, fsm2_noise]
+"""
+
+
+def add_noise_to_move(moves, noise):
+
+    p = np.random.uniform()
+    if p < noise[0]:
+        if moves[0] == 'C':
+            moves[0] = 'D'
+        else:
+            moves[0] = 'C'
+
+    p = np.random.uniform()
+    if p < noise[1]:
+        if moves[1] == 'C':
+            moves[1] = 'D'
+        else:
+            moves[1] = 'C'
+
+    return moves
 
 """
 Plays out a competition between two automata,
 and returns their final scores. Optional arguments are
 the number of rounds, whether the score is reset before starting
 and whether there is a printout of the results.
+noise = [x1, x2] where x1 is the noise for fsm1 and x2 is the noise for fsm2
 """
 
 
-def compete(fsm1, fsm2, no_rounds=100, reset=True, printout=True):
+def compete(fsm1, fsm2, no_rounds=100, reset=True, printout=True, noise=(0, 0)):
 
     # check whether they are the same group
     if fsm1.group == fsm2.group:
@@ -33,6 +60,12 @@ def compete(fsm1, fsm2, no_rounds=100, reset=True, printout=True):
     for i in range(no_rounds):
         fsm1_move = fsm1.current_node.strat
         fsm2_move = fsm2.current_node.strat
+
+        # if there is noise
+        if noise[0] > 0 or noise[1] > 0:
+            new_moves = add_noise_to_move([fsm1_move, fsm2_move], noise)
+            fsm1_move = new_moves[0]
+            fsm2_move = new_moves[1]
 
         fsm1_score += fsm1.move(fsm1_move, fsm2_move, same_group, record=False)
         fsm2_score += fsm2.move(fsm2_move, fsm1_move, same_group, record=False)
@@ -70,16 +103,31 @@ def hash_score(scores, fsa1, fsa2, no_rounds=120):
     return fsm1_score, fsm2_score, coop_percent
 
 
+def noise_score(env, fsa1, fsa2, no_rounds=120):
+    noise = [0, 0]
+    noise[0] = env.get_modifiers(fsa1, 'noise')
+    noise[1] = env.get_modifiers(fsa2, 'noise')
+
+    fsm1_score, fsm2_score, coop_percent = compete(fsa1, fsa2, no_rounds=no_rounds, reset=False, printout=False, noise=noise)
+    return fsm1_score, fsm2_score, coop_percent, np.mean(noise)
+
+
 def face_off(bot1, bot2,  env, saved={}, noise=False):
-    fsm1_score, fsm2_score, coop_percent = hash_score(saved, bot1, bot2)
+    if not noise:
+        fsm1_score, fsm2_score, coop_percent = hash_score(saved, bot1, bot2)
+        noise_percent = 0
+    else:
+        fsm1_score, fsm2_score, coop_percent, noise_percent = noise_score(env, bot1, bot2)
+
     # Add modifiers to score
-    fsm1_score *= env.get_modifiers(bot1)
-    fsm2_score *= env.get_modifiers(bot2)
+    # modified from get_modifiers
+    fsm1_score *= env.get_modifiers(bot1, 'score')
+    fsm2_score *= env.get_modifiers(bot2, 'score')
     # save score for bot
     bot1.current_points += fsm1_score
     bot2.current_points += fsm2_score
 
-    return fsm1_score, fsm2_score, coop_percent
+    return fsm1_score, fsm2_score, coop_percent, noise_percent
 
 """
 This runs a tournmanet between multiple automata acting as contestants
@@ -92,7 +140,7 @@ saved = whether there is hashed scores of existing competitors (if there are mul
 """
 
 
-def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise=False):
+def tournament_test(enviroment, competitors=None, saved={}, neighbours=20):
     # record group size
     group_sizes = [len(group) for group in competitors]
 
@@ -103,6 +151,7 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
     # record on a per group basis, set up initial
     coop_total = {}
     coop_total2 = 0
+    noise_total = 0
     groups = len(group_sizes) # number of groups
     for i in range(groups):
         # first number is total from every round, second is number of rounds
@@ -110,6 +159,9 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
         coop_total[(i, i)] = [0, 0]
         for j in range(i+1, groups):
             coop_total[(i, j)] = [0, 0]
+
+    # check for noise
+    noise = enviroment.noise
 
 
     # each bot faces against the closest bots to them, equal to neighbours
@@ -131,12 +183,6 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
         for bot2 in nearest:
             bot1_hash = bot1.unique_hash()
             bot2_hash = bot2.unique_hash()
-            # if (hash(bot1), hash(bot2)) in faced_off or (hash(bot2), hash(bot1)) in faced_off:
-            #     continue
-            # faced_off.add((hash(bot1), hash(bot2)))
-            # faced_off.add((hash(bot2), hash(bot1)))
-            # game_tally[hash(bot1)][1] += 1
-            # game_tally[hash(bot2)][1] += 1
 
             if (bot1_hash, bot2_hash) in faced_off or (bot2_hash, bot1_hash) in faced_off:
                 continue
@@ -145,10 +191,7 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
             game_tally[bot1_hash][1] += 1
             game_tally[bot2_hash][1] += 1
 
-            fsm1_score, fsm2_score, coop_percent = face_off(bot1, bot2, enviroment, saved, noise)
-
-            # game_tally[hash(bot1)][0] += fsm1_score
-            # game_tally[hash(bot2)][0] += fsm2_score
+            fsm1_score, fsm2_score, coop_percent, noise_percent = face_off(bot1, bot2, enviroment, saved, noise)
 
             game_tally[bot1_hash][0] += fsm1_score
             game_tally[bot2_hash][0] += fsm2_score
@@ -160,6 +203,7 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
             coop_total[group_nums][1] += 1
 
             coop_total2 += coop_percent
+            noise_total += noise_percent
 
 
     bots = []
@@ -183,6 +227,7 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
 
     # Get total coop percentage by figuring out total number of interactions
     coop_total2 /= (sum([x[1] for x in game_tally.values()])/2)
+    noise_total /= (sum([x[1] for x in game_tally.values()])/2)
     for kv in coop_total.items():
         key = kv[0]
         val = kv[1]
@@ -191,7 +236,7 @@ def tournament_test(enviroment, competitors=None, saved={}, neighbours=50, noise
         coop_avg = val[0]/val[1]
         coop_total[key] = [round(coop_avg, 4), val]
 
-    return bots, coop_total, coop_total2
+    return bots, coop_total, coop_total2, noise_total
 
 
 def tournament2(enviroment, competitors=None, saved={}, neighbours=15, noise=False):
@@ -222,8 +267,8 @@ def tournament2(enviroment, competitors=None, saved={}, neighbours=15, noise=Fal
             if i != j:
                 fsm1_score, fsm2_score, coop_percent = hash_score(saved, competitors[i], competitors[j])
                 # Add modifiers to score
-                fsm1_score *= enviroment.get_modifiers(competitors[i])
-                fsm2_score *= enviroment.get_modifiers(competitors[j])
+                fsm1_score *= enviroment.get_modifiers(competitors[i], 'score')
+                fsm2_score *= enviroment.get_modifiers(competitors[j], 'score')
                 # saves scores
                 saved_scores[i] += fsm1_score
                 saved_scores[j] += fsm2_score

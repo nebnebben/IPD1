@@ -5,10 +5,10 @@ import heapq
 
 class Enviroment_Effect:
 
-    def __init__(self, location, affected_groups, effect, strength, grid_size):
+    def __init__(self, location, affected_groups, effect_type, strength, grid_size):
         self.location = location
         self.affected_groups = affected_groups
-        self.effect = effect
+        self.type = effect_type
         self.strength = strength
 
         # Calculates distance modifier based on location + grid_size
@@ -39,7 +39,10 @@ class Enviroment_Effect:
         # work out dist to point
         dist_to_point = self.euclidean_distance(self.location, cur_location)
         modifier = self.strength - dist_to_point*self.distance_value
-        # modifier = max(1, modifier) # only if can go out of bounds
+        # adjusts for noise
+        if self.type == 'noise':
+            modifier -= 1
+
         return modifier
 
 
@@ -57,6 +60,8 @@ class Environment:
         # enviromental effects
         self.effects = []
 
+        self.noise = False
+
         # temp
         self.temp_automata = {}
 
@@ -64,22 +69,35 @@ class Environment:
     """
     Adds enviromental effect
     """
-    def add_effect(self, location, affected_groups, effect, strength):
-        effect = Enviroment_Effect(location, affected_groups, effect, strength, self.size)
+    def add_effect(self, location, affected_groups, effect_type, strength):
+        effect = Enviroment_Effect(location, affected_groups, effect_type, strength, self.size)
+        if effect_type == 'noise':
+            self.noise = True
         self.effects.append(effect)
 
     """
     Gets modifier to score based on enviroment
     """
-    def get_modifiers(self, automata):
+    def get_modifiers(self, automata, effect_type):
         modifier = 1
         for effect in self.effects:
             # checks whether modifier applies
-            if automata.group in effect.affected_groups:
+            if automata.group in effect.affected_groups and effect_type == effect.type:
                 # gets the effect strength based on the automata location, applies to modifier
                 modifier *= effect.effect_strength(automata.location)
 
         return modifier
+
+    def get_modifiers_absolute(self, automata, effect_type):
+        modifiers = [1]
+        for effect in self.effects:
+            # checks whether modifier applies
+            if automata.group in effect.affected_groups and effect_type == effect.type:
+                # gets the effect strength based on the automata location, applies to modifier
+                modifiers.append(effect.effect_strength(automata.location))
+
+        return np.max(modifiers)
+
 
     """
     Adds new automaton to the board
@@ -191,7 +209,7 @@ class Environment:
 
         new_location = automata.location + total_momentum + noise
         new_location = np.maximum(new_location, [0, 0])
-        new_location = np.minimum(new_location, [self.size, self.size])
+        new_location = np.minimum(new_location, [self.size - 1, self.size - 1])
 
         if grid:
             del self.automata_locations[tuple(automata.location)]

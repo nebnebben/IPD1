@@ -53,9 +53,11 @@ This gets an existing automaton and mutates the network
 """
 
 
-def mutate_network(nodes, mutate_rate=0.05, max_len_nodes=8):
+def mutate_network(nodes, mutate_rate=0.05, max_len_nodes=8, env=None, group=0):
     # nodes = automaton.nodes
     no_nodes = len(nodes)
+    if env:
+        mutate_rate = env.get_modifiers('mutate', group)
 
     # Chance to add or remove a node, half chance to add or remove a node
     p = np.random.uniform()
