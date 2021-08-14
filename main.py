@@ -12,11 +12,11 @@ if __name__ == '__main__':
     # tournament.add_effect([20, 20], [0], 'score', 2)
     # tournament.add_effect([80, 80], [1], None, 2)
     # tournament.add_effect([20, 20], [0], 'score', 2)
-    tournament.add_effect([0, 0], [0], 'noise', 1.1)
+    # tournament.add_effect([0, 0], [0], 'noise', 1.1)
     # for i in range(5):
     tournament.add_group(50)
 
-    c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=10000, percentage_kept=0.9)
+    c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=1000, percentage_kept=0.9)
     # c_percent, scores = repeated_tournament_evolutionary(no_rounds=1000, pop_size=100, percentage_kept=0.9)
     # plt.plot(scores)
     # plt.show()

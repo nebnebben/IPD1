@@ -8,7 +8,7 @@ import numpy as np
 import datetime
 
 
-def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds=1000, file_path=None):
+def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds=1000, file_path=None, start_ind=0):
     print(f'basic groups_{number_groups} size_{group_size} no_rounds_{no_rounds}')
 
     if not file_path:
@@ -18,7 +18,7 @@ def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds
         file_object.write(f'basic groups_{number_groups} size_{group_size}  no_rounds_{no_rounds}\n')
 
     save_file = []
-    for i in range(exp_repeat):
+    for i in range(start_ind, exp_repeat):
         print(f'round {i}, groups_{number_groups} size_{group_size} no_rounds_{no_rounds}')
         tournament = enviromental_tournament.tournament(100)
         for n in range(number_groups):
@@ -89,7 +89,17 @@ def one_group_environment(environments, save_ind, file_path=None):
         np.save(f'{file_path}/environ_tests/{f_name}', save_file)
 
 
-# n_groups_basic(1, False, 50, exp_repeat=1)
+
+
+# for i in range(5, 11):
+#     n_groups_basic(i, False, 50, exp_repeat=50, no_rounds=1000)
+
+# n_groups_basic(2, False, 50, exp_repeat=50, no_rounds=1000)
+# n_groups_basic(3, True, 50, exp_repeat=50, no_rounds=1000)
+# n_groups_basic(5, True, 50, exp_repeat=50, no_rounds=1000)
+# n_groups_basic(6, True, 50, exp_repeat=50, no_rounds=1000)
+
+
 
 # power = [1.1, 3, 5, 10, 20]
 # for p in power:
