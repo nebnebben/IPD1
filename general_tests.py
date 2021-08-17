@@ -8,21 +8,21 @@ import numpy as np
 import datetime
 
 
-def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds=1000, file_path=None, start_ind=0):
+def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds=1000, env_size=100, file_path=None, start_ind=0):
     print(f'basic groups_{number_groups} size_{group_size} no_rounds_{no_rounds}')
 
     if not file_path:
         file_path = 'test_data/random_stuff/exp'
 
     with open(f"{file_path}/group_tests/time_taken.txt", "a") as file_object:
-        file_object.write(f'basic groups_{number_groups} size_{group_size}  no_rounds_{no_rounds}\n')
+        file_object.write(f'basic groups_{number_groups} size_{group_size}  no_rounds_{no_rounds} env_size{env_size}\n')
 
     save_file = []
     for i in range(start_ind, exp_repeat):
-        print(f'round {i}, groups_{number_groups} size_{group_size} no_rounds_{no_rounds}')
-        tournament = enviromental_tournament.tournament(100)
+        print(f'round {i}, groups_{number_groups} size_{group_size} no_rounds_{no_rounds} env_size{env_size}')
+        tournament = enviromental_tournament.tournament(env_size)
         for n in range(number_groups):
-            tournament.add_group(100)
+            tournament.add_group(group_size)
 
         c_percent, scores, coop_total, time_taken = tournament.basic_tournament(no_rounds=no_rounds, percentage_kept=0.9)
         to_be_saved = tournament
@@ -33,12 +33,12 @@ def n_groups_basic(number_groups, save_ind, group_size, exp_repeat=20, no_rounds
             file_object.write(f'{time_taken} \n')
 
         if save_ind:
-            f_name = f'basic groups_{number_groups}_size_{group_size}_no_rounds_{no_rounds}_exp{i}'
+            f_name = f'basic groups_{number_groups}_size_{group_size}_no_rounds_{no_rounds}_env_size{env_size}_exp{i}'
             np.save(f'{file_path}/group_tests/{f_name}', to_be_saved)
 
     if not save_ind:
         d_time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        name = f'basic groups_{number_groups} size_{group_size} no_rounds_{no_rounds}'
+        name = f'basic groups_{number_groups} size_{group_size} no_rounds_{no_rounds}_env_size{env_size}'
         f_name = d_time + name
 
         np.save(f'{file_path}/group_tests/{f_name}', save_file)
@@ -94,8 +94,26 @@ def one_group_environment(environments, save_ind, file_path=None):
 # for i in range(5, 11):
 #     n_groups_basic(i, False, 50, exp_repeat=50, no_rounds=1000)
 
-# n_groups_basic(2, False, 50, exp_repeat=50, no_rounds=1000)
+# n_groups_basic(2, False, 50, exp_repeat=50, no_rounds=1000, start_ind=1)
+
+# for i in range(1, 5):
+#     n_groups_basic(i, True, 50, exp_repeat=10, no_rounds=10000)
+
+# for i in range(1, 5):
+#     n_groups_basic(i, True, group_size=100, exp_repeat=20, no_rounds=1000, env_size=1000)
+#
+# for i in range(1, 5):
+#     n_groups_basic(i, True, 50, exp_repeat=10, no_rounds=10000, env_size=1000)
+
+
+
 # n_groups_basic(3, True, 50, exp_repeat=50, no_rounds=1000)
+# n_groups_basic(10, True, 50, exp_repeat=30, no_rounds=1000)
+# n_groups_basic(15, True, 50, exp_repeat=1, no_rounds=1000)
+
+# n_groups_basic(30, True, 50, exp_repeat=1, no_rounds=1000)
+
+
 # n_groups_basic(5, True, 50, exp_repeat=50, no_rounds=1000)
 # n_groups_basic(6, True, 50, exp_repeat=50, no_rounds=1000)
 
