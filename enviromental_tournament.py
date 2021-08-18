@@ -28,6 +28,9 @@ class tournament:
         self.scores = []
         self.noise = []
 
+        # How often the location list of each automata is updated
+        self.location_update_frequency = 1
+
 
     """
     Updates the population by replacing existing individuals with random copies and 
@@ -57,21 +60,9 @@ class tournament:
         # pop = kept_bots + new_bots
         return pop
 
-    def move_pop(self, pop):
+    def move_pop(self, pop, i):
         for automaton in pop:
-            self.env.move_automaton(automaton)
-
-        # location_set = {}
-        # for p in pop:
-        #     temp = tuple(p.location)
-        #     if temp not in location_set:
-        #         location_set[temp] = 1
-        #     else:
-        #         location_set[temp] += 1
-        #
-        # for v in location_set.values():
-        #     if v > 1:
-        #         print('here')
+            self.env.move_automaton(automaton, i, self.location_update_frequency)
 
     """
     Updates useful history stuff
@@ -132,24 +123,12 @@ class tournament:
         start_time = time.time()
 
         for i in range(no_rounds):
-            # Updates history
-            # print('')
-            # start_time = time.time()
-            # self.update_history()
-            # print(time.time()-start_time)
-
-            # Runs a tournament
-            # start_time = time.time()
-            # res, coop_total = tournament2(self.env, self.pop, self.saved)
 
             res, coop_total, coop_total2, noise_total = tournament_test(self.env, self.pop, self.saved)
             # print(time.time() - start_time)
             # print('')
             if len(self.saved) > (len(overall_pop)*3)**2:
                 self.saved = {}
-            # scores = [x[0] for x in res]
-            # pop = [x[1] for x in res]
-            # print(min(scores), max(scores), np.mean(scores), coop_total)
 
             scores = [[x[0] for x in group] for group in res]
             pop = [[x[1] for x in group] for group in res]
@@ -159,7 +138,7 @@ class tournament:
 
             # move pop
             for group in self.pop:
-                self.move_pop(group)
+                self.move_pop(group, i)
 
             # Gets co-operation percentage
             c_percent.append(coop_total2)
@@ -171,11 +150,6 @@ class tournament:
             avg_scores.append(np.sum(scores) / len(np.array(scores).flatten()))
 
             # Updates each group in the population, evolution and mutation
-            # on per group basis
-            # for i, group in enumerate(self.pop):
-            #     self.pop[i] = self.update_pop(group, kept[i], res)
-            # self.update_pop(pop, kept[0], res)
-            # self.update_pop(pop[0], kept[0], res[0]) # works for some reason
             for i, group in enumerate(pop):
                 self.update_pop(group, kept[i], res[i])
 

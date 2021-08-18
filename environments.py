@@ -206,7 +206,7 @@ class Environment:
                 return temp
 
     # Moves current
-    def move_automaton(self, automata, grid=False):
+    def move_automaton(self, automata, i, location_update_frequency, grid=False):
         # agent = self.automata_locations[tuple(location)]
 
         noise = np.random.normal(0, self.gaussian_var, 2)
@@ -240,7 +240,9 @@ class Environment:
         # update agent
         automata.old_location = automata.location
         automata.location = new_location
-        automata.location_list.append(new_location)
+        # v. mem expensive to update location_list every time, so this instead
+        if i % location_update_frequency == 0:
+            automata.location_list.append(new_location)
         automata.momentum = total_momentum
 
         self.automata_locations[tuple(new_location)] = automata
