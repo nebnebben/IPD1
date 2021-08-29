@@ -162,8 +162,8 @@ def multiple_group_environment(environments, save_ind, exp_repeat=20, file_path=
 # def one_group_environment(environments, save_ind, exp_repeat=20, file_path=None, no_rounds=1000,
 #                    start_ind=0, location_update_frequency=20):
 
-one_group_environment([[[0, 0], [0], 'noise', 1.02]], True, exp_repeat=50, no_rounds=1000,
-                      location_update_frequency=10, file_path='test_data/random_stuff/exp/noise_tests2')
+# one_group_environment([[[0, 0], [0], 'noise', 1.02]], True, exp_repeat=50, no_rounds=1000,
+#                       location_update_frequency=10, file_path='test_data/random_stuff/exp/noise_tests2')
 
 # one_group_environment([[[0, 0], [0], 'noise', 1.02]], True, exp_repeat=50, no_rounds=1000,
 #                       location_update_frequency=10, file_path='test_data/random_stuff/exp/noise tests')
