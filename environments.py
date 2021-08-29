@@ -102,7 +102,7 @@ class Environment:
 
         return modifier
 
-    def get_modifiers_absoleute(self, automata, effect_type):
+    def get_modifiers_absolute(self, automata, effect_type):
         modifiers = [1]
         for effect in self.effects:
             # checks whether modifier applies
