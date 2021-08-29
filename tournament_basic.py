@@ -121,8 +121,8 @@ def face_off(bot1, bot2,  env, saved={}, noise=False):
 
     # Add modifiers to score
     # modified from get_modifiers
-    fsm1_score *= env.get_modifiers(bot1, 'score')
-    fsm2_score *= env.get_modifiers(bot2, 'score')
+    fsm1_score *= env.get_modifiers_absolute(bot1, 'score')
+    fsm2_score *= env.get_modifiers_absolute(bot2, 'score')
     # save score for bot
     bot1.current_points += fsm1_score
     bot2.current_points += fsm2_score
